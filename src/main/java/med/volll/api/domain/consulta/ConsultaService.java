@@ -1,5 +1,7 @@
 package med.volll.api.domain.consulta;
 
+import med.volll.api.domain.ValidacaoException;
+import med.volll.api.domain.medico.Medico;
 import med.volll.api.domain.medico.MedicoRepository;
 import med.volll.api.domain.paciente.PacienteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,15 +22,34 @@ public class ConsultaService {
     private PacienteRepository pacienteRepository;
 
     public Consulta cadastrar(DadosCadastroConsulta dados) {
-        var medico = medicoRepository.getReferenceById(dados.medicoId());
+        if (!pacienteRepository.existsById(dados.pacienteId())){
+            throw new ValidacaoException("Id do paciente informado não existe");
+        }
+        if (dados.medicoId()!= null && !medicoRepository.existsById(dados.medicoId())){
+            throw new ValidacaoException("Id do médico informado não existe");
+        }
+
+        var medico = escolherMedico(dados);
         var paciente = pacienteRepository.getReferenceById(dados.pacienteId());
-        LocalDateTime dataConsulta = gerarDataConsulta(dados.dadosDataAgendamento());
+        LocalDateTime dataConsulta = dados.data();
         if (medico.verificar(dataConsulta) && paciente.verificar(dataConsulta) && verificarPrazoAgendamento(dataConsulta)){
             var consulta = new Consulta(paciente, medico, dataConsulta);
             consultaRepository.save(consulta);
             return consulta;
         }
         throw new RuntimeException("Não foi possível cadastrar consulta");
+    }
+
+    private Medico escolherMedico(DadosCadastroConsulta dados) {
+        if (dados.medicoId() != null){
+            return medicoRepository.getReferenceById(dados.medicoId());
+        }
+
+        if (dados.especialidade() == null){
+            throw new ValidacaoException("Especialidade é obrigatória quando o médico não for escolhido");
+        }
+
+        return medicoRepository.escolherMedicoAleatorioLivreNaData(dados.especialidade(), dados.data());
     }
 
     public void cancelar(DadosCancelamentoConsulta dados) {
@@ -46,9 +67,9 @@ public class ConsultaService {
         }
     }
 
-    private LocalDateTime gerarDataConsulta(DadosDataAgendamento dados){
-        return LocalDateTime.of(dados.ano(), dados.mes(), dados.dia(), dados.hora(),dados.minuto());
-    }
+//    private LocalDateTime gerarDataConsulta(DadosDataAgendamento dados){
+//        return LocalDateTime.of(dados.ano(), dados.mes(), dados.dia(), dados.hora(),dados.minuto());
+//    }
 
     private boolean verificarPrazoAgendamento(LocalDateTime dataConsulta) {
         LocalDateTime agora = LocalDateTime.now();
@@ -67,9 +88,9 @@ public class ConsultaService {
         return agora.isBefore(dataConsulta.minusHours(24l));
     }
 
-    public ConsultaRepository getConsultaRepository() {
-        return consultaRepository;
-    }
+//    public ConsultaRepository getConsultaRepository() {
+//        return consultaRepository;
+//    }
 
     public Page<DadosDetalheConsulta> listar(Pageable paginacao) {
         return consultaRepository.findByAtivoTrue(paginacao)
