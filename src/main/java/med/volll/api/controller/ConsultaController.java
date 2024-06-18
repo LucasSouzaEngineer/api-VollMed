@@ -21,12 +21,12 @@ public class ConsultaController {
 
     @PostMapping
     @Transactional
-    public ResponseEntity cadastrar(@RequestBody DadosCadastroConsulta dados, UriComponentsBuilder uriComponentsBuilder){
-        var consulta = service.cadastrar(dados);
+    public ResponseEntity cadastrar(@RequestBody @Valid DadosCadastroConsulta dados, UriComponentsBuilder uriComponentsBuilder){
+        var detalhamentoConsulta = service.cadastrar(dados);
         var uri = uriComponentsBuilder.path("/consultas/{id}")
-                        .buildAndExpand(consulta.getId())
+                        .buildAndExpand(detalhamentoConsulta.id())
                         .toUri();
-        return ResponseEntity.created(uri).body(new DadosDetalheConsulta(consulta));
+        return ResponseEntity.created(uri).body(detalhamentoConsulta);
     }
 
     @GetMapping

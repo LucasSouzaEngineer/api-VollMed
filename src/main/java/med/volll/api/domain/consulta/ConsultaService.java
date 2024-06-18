@@ -1,6 +1,7 @@
 package med.volll.api.domain.consulta;
 
 import med.volll.api.domain.ValidacaoException;
+import med.volll.api.domain.consulta.validacoes.ValidadorAgendamentoDeConsulta;
 import med.volll.api.domain.medico.Medico;
 import med.volll.api.domain.medico.MedicoRepository;
 import med.volll.api.domain.paciente.PacienteRepository;
@@ -10,6 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -20,8 +22,10 @@ public class ConsultaService {
     private MedicoRepository medicoRepository;
     @Autowired
     private PacienteRepository pacienteRepository;
+    @Autowired
+    private List<ValidadorAgendamentoDeConsulta> validadores;
 
-    public Consulta cadastrar(DadosCadastroConsulta dados) {
+    public DadosDetalheConsulta cadastrar(DadosCadastroConsulta dados) {
         if (!pacienteRepository.existsById(dados.pacienteId())){
             throw new ValidacaoException("Id do paciente informado não existe");
         }
@@ -29,15 +33,16 @@ public class ConsultaService {
             throw new ValidacaoException("Id do médico informado não existe");
         }
 
+        validadores.forEach(v -> v.validar(dados));
+
         var medico = escolherMedico(dados);
-        var paciente = pacienteRepository.getReferenceById(dados.pacienteId());
-        LocalDateTime dataConsulta = dados.data();
-        if (medico.verificar(dataConsulta) && paciente.verificar(dataConsulta) && verificarPrazoAgendamento(dataConsulta)){
-            var consulta = new Consulta(paciente, medico, dataConsulta);
-            consultaRepository.save(consulta);
-            return consulta;
+        if (medico == null){
+            throw new ValidacaoException("Não existe médico disponível nessa data");
         }
-        throw new RuntimeException("Não foi possível cadastrar consulta");
+        var paciente = pacienteRepository.getReferenceById(dados.pacienteId());
+        var consulta = new Consulta(paciente, medico, dados.data());
+        consultaRepository.save(consulta);
+        return new DadosDetalheConsulta(consulta);
     }
 
     private Medico escolherMedico(DadosCadastroConsulta dados) {
@@ -67,30 +72,11 @@ public class ConsultaService {
         }
     }
 
-//    private LocalDateTime gerarDataConsulta(DadosDataAgendamento dados){
-//        return LocalDateTime.of(dados.ano(), dados.mes(), dados.dia(), dados.hora(),dados.minuto());
-//    }
-
-    private boolean verificarPrazoAgendamento(LocalDateTime dataConsulta) {
-        LocalDateTime agora = LocalDateTime.now();
-        int domingo = 7;
-        LocalTime abertura = LocalTime.of(7,0);
-        LocalTime fechamento = LocalTime.of(19, 0);
-        boolean prazoAgendamento = agora.isBefore(dataConsulta.minusMinutes(30l));
-        boolean diaAgendamento = !(dataConsulta.getDayOfWeek().getValue() == domingo);
-        boolean horaAgendamento = LocalTime.from(dataConsulta).isAfter(abertura) && LocalTime.from(dataConsulta).isBefore(fechamento);
-        return prazoAgendamento && diaAgendamento && horaAgendamento;
-    }
-
     private boolean verificarPrazoCancelamento(LocalDateTime dataConsulta){
         LocalDateTime agora = LocalDateTime.now();
         System.out.println("validado");
         return agora.isBefore(dataConsulta.minusHours(24l));
     }
-
-//    public ConsultaRepository getConsultaRepository() {
-//        return consultaRepository;
-//    }
 
     public Page<DadosDetalheConsulta> listar(Pageable paginacao) {
         return consultaRepository.findByAtivoTrue(paginacao)

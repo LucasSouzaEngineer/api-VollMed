@@ -2,10 +2,11 @@ package med.volll.api.domain.consulta.validacoes;
 
 import med.volll.api.domain.ValidacaoException;
 import med.volll.api.domain.consulta.DadosCadastroConsulta;
+import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
-
-public class ValidadorHorarioAntecedencia {
+@Component
+public class ValidadorHorarioAntecedencia implements ValidadorAgendamentoDeConsulta{
 
     public void validar(DadosCadastroConsulta dados){
         var dataConsulta = dados.data();

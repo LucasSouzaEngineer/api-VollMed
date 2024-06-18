@@ -8,19 +8,10 @@ public record DadosDetalheConsulta(
         Long id,
         String medico,
         String paciente,
-        LocalDate data,
-        LocalTime horario
+        LocalDateTime data
          ) {
 
     public DadosDetalheConsulta(Consulta consulta){
-        this(consulta.getId(), consulta.getMedico().getNome(), consulta.getPaciente().getNome(), getData(consulta.getAgendamento()), getHorario(consulta.getAgendamento()));
-    }
-
-    private static LocalTime getHorario(LocalDateTime agendamento) {
-        return LocalTime.from(agendamento);
-    }
-
-    private static LocalDate getData(LocalDateTime agendamento) {
-        return LocalDate.from(agendamento);
+        this(consulta.getId(), consulta.getMedico().getNome(), consulta.getPaciente().getNome(), consulta.getAgendamento());
     }
 }

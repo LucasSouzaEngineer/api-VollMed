@@ -49,14 +49,6 @@ public class Paciente {
         }
     }
 
-    public boolean verificar(LocalDateTime dataConsulta) {
-        if (this.ativo){
-            return !consultas.stream().anyMatch(c -> LocalDate.from(c.getAgendamento()).equals(LocalDate.from(dataConsulta)));
-        }else {
-            return false;
-        }
-    }
-
     public void setConsulta(Consulta consulta) {
         this.consultas.add(consulta);
     }

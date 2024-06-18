@@ -56,14 +56,6 @@ public class Medico {
         }
     }
 
-    public boolean verificar(LocalDateTime dataConsulta) {
-        if (this.ativo){
-             return !this.consultas.stream().anyMatch(c -> c.getAgendamento().equals(dataConsulta));
-        }else {
-            return false;
-        }
-    }
-
     public void setConsulta(Consulta consulta){
         this.consultas.add(consulta);
     }
