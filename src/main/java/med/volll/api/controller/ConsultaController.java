@@ -1,5 +1,6 @@
 package med.volll.api.controller;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import med.volll.api.domain.consulta.ConsultaService;
 import med.volll.api.domain.consulta.DadosCadastroConsulta;
@@ -15,6 +16,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 @RestController
 @RequestMapping("/consultas")
+@SecurityRequirement(name = "bearer-key")
 public class ConsultaController {
     @Autowired
     private ConsultaService service;
