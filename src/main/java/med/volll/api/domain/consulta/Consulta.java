@@ -1,12 +1,14 @@
 package med.volll.api.domain.consulta;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import med.volll.api.domain.medico.Medico;
 import med.volll.api.domain.paciente.Paciente;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "consultas")
+@AllArgsConstructor
 public class Consulta {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,6 +33,13 @@ public class Consulta {
 
         this.medico.setConsulta(this);
         this.paciente.setConsulta(this);
+    }
+
+    public Consulta(Long id, Paciente paciente, Medico medico, LocalDateTime agendamento) {
+        this.id = id;
+        this.paciente = paciente;
+        this.medico = medico;
+        this.agendamento = agendamento;
     }
 
     public Long getId() {
