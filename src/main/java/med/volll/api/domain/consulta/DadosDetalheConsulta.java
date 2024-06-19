@@ -6,12 +6,12 @@ import java.time.LocalTime;
 
 public record DadosDetalheConsulta(
         Long id,
-        String medico,
-        String paciente,
+        Long medico,
+        Long paciente,
         LocalDateTime data
          ) {
 
     public DadosDetalheConsulta(Consulta consulta){
-        this(consulta.getId(), consulta.getMedico().getNome(), consulta.getPaciente().getNome(), consulta.getAgendamento());
+        this(consulta.getId(), consulta.getMedico().getId(), consulta.getPaciente().getId(), consulta.getAgendamento());
     }
 }
